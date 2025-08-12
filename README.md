@@ -137,6 +137,24 @@ docker run -p 8000:8000 -v $(pwd):/app snapgeo-ocr
 4. Render automatically detects `Dockerfile` and deploys!
 5. Access docs at: `https://your-app.onrender.com/docs`
 
+#### 🔥 Free Tier Optimization (Render)
+Render's free tier puts services to sleep after 15 minutes. Use the **warm-up strategy**:
+
+```bash
+# 1. Wake up service (20-30s first time)
+curl https://your-app.onrender.com/health
+
+# 2. Wait 2-3 seconds for full initialization
+
+# 3. Now all OCR requests will be fast (2-7s)
+curl -X POST https://your-app.onrender.com/ocr -F "file=@image.jpg"
+```
+
+**📊 Performance Impact:**
+- **Without warm-up**: Each request may have 20-30s delay
+- **With warm-up**: Only first health check is slow, OCR requests are fast
+- **Batch processing**: Warm up once, process multiple images quickly
+
 #### Other Platforms
 - **Heroku**: Push with `heroku container:push web`
 - **AWS/GCP**: Use container orchestration services

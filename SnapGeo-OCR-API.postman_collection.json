@@ -1,0 +1,1017 @@
+{
+	"info": {
+		"_postman_id": "d4f6c8e2-3b1a-4c5d-8f9e-1a2b3c4d5e6f",
+		"name": "SnapGeo OCR API",
+		"description": "# SnapGeo OCR - GPS Coordinate Extraction Service\n\n**Advanced OCR service that extracts GPS coordinates from images with confidence scoring**\n\n## 🎯 Overview\nSnapGeo OCR is a production-ready FastAPI microservice that extracts GPS coordinates from images containing GPS overlays. Using advanced Tesseract OCR processing with 40+ configurations, it achieves **88.9% success rate** on challenging GPS overlay images.\n\n## ✨ Key Features\n- **🎯 High Accuracy**: 88.9% success rate on challenging GPS overlay images\n- **🧠 Smart Processing**: Multi-stage OCR with fragment reconstruction\n- **📊 Confidence Scoring**: Quality assessment for each coordinate extraction\n- **⚡ Fast Processing**: 2-7 seconds per image\n- **🌍 Geographic Context**: Indonesian location mapping and validation\n\n## 📊 Confidence Levels\n- **Very High (0.90+)**: Production ready - Direct usage\n- **High (0.80-0.89)**: Highly reliable - Safe for most cases\n- **Medium (0.60-0.79)**: Good quality - Generally reliable\n- **Low (<0.60)**: Use with caution - Manual review needed\n\n## 🔗 Documentation\n- **Swagger UI**: https://snapgeo-ocr.onrender.com/docs\n- **ReDoc**: https://snapgeo-ocr.onrender.com/redoc\n- **GitHub**: https://github.com/your-username/snapgeo-ocr\n\n## 📞 Support\n- **Health Check**: Use the Health Check folder to verify service status\n- **API Testing**: Use OCR Processing folder for coordinate extraction\n- **Examples**: Check the Example Responses folder for expected outputs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "snapgeo-team"
+	},
+	"item": [
+		{
+			"name": "🔍 OCR Processing",
+			"item": [
+				{
+					"name": "Extract GPS Coordinates",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test script for GPS coordinate extraction",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has coordinates\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('latitude');",
+									"    pm.expect(jsonData).to.have.property('longitude');",
+									"});",
+									"",
+									"pm.test(\"Response has confidence scoring\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('confidence');",
+									"    pm.expect(jsonData.confidence).to.have.property('score');",
+									"    pm.expect(jsonData.confidence).to.have.property('level');",
+									"    pm.expect(jsonData.confidence).to.have.property('method');",
+									"});",
+									"",
+									"pm.test(\"Coordinates are within Indonesian bounds\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    const lat = jsonData.latitude;",
+									"    const lon = jsonData.longitude;",
+									"    ",
+									"    // Indonesian coordinate bounds",
+									"    pm.expect(lat).to.be.within(-11, -1); // 1°-11°S",
+									"    pm.expect(lon).to.be.within(95, 141);  // 95°-141°E",
+									"});",
+									"",
+									"pm.test(\"Confidence score is valid\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    const score = jsonData.confidence.score;",
+									"    pm.expect(score).to.be.within(0, 1);",
+									"});",
+									"",
+									"// Log confidence information",
+									"const jsonData = pm.response.json();",
+									"if (jsonData.confidence) {",
+									"    console.log(`Confidence: ${jsonData.confidence.score} (${jsonData.confidence.level}) - ${jsonData.confidence.method}`);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Pre-request script",
+									"console.log(\"Starting GPS coordinate extraction...\");",
+									"console.log(\"Expected processing time: 2-7 seconds\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Upload an image file containing GPS overlay (JPG, JPEG, PNG)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/ocr",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ocr"
+							]
+						},
+						"description": "**Extract GPS coordinates from images with GPS overlays**\n\n## 📤 Request\n- **Method**: POST\n- **Content-Type**: multipart/form-data\n- **File Parameter**: `file` (required)\n- **Supported Formats**: JPG, JPEG, PNG\n- **Max File Size**: 10MB (configurable)\n\n## 📥 Response\n- **Success**: GPS coordinates with confidence scoring\n- **Processing Time**: 2-7 seconds depending on image quality\n- **Confidence Score**: 0.0-1.0 (higher is better)\n\n## 🧪 Testing Instructions\n1. Click \"Select Files\" in the file parameter\n2. Choose an image with GPS overlay (bottom-right corner)\n3. Send the request\n4. Check the confidence score in the response\n5. Verify coordinates are within Indonesian bounds (-11° to -1°S, 95° to 141°E)\n\n## 📊 Expected Success Rates\n- **Perfect Quality**: ~95% success rate\n- **Good Quality**: ~85% success rate\n- **Poor Quality**: ~70% success rate\n\n## ⚠️ Notes\n- GPS overlays should be in bottom-right corner\n- Processing time varies by image quality\n- Check confidence score before using coordinates\n- Use coordinates with confidence ≥ 0.8 for production"
+					},
+					"response": [
+						{
+							"name": "✅ High Confidence Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"type": "file",
+											"src": "gps-overlay-clear.jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/ocr",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ocr"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"raw_text\": \"7°33'15.8\\\"S 110°38'38.7\\\"E\\nSpeed: 0.0km/h\\nAltitude: 125.3msnm\\nIndex number: 42\",\n  \"latitude\": -7.55492507,\n  \"longitude\": 110.64424782,\n  \"latitude_reconstructed\": true,\n  \"longitude_reconstructed\": false,\n  \"confidence\": {\n    \"score\": 0.85,\n    \"level\": \"high\",\n    \"method\": \"fragment_reconstruction\",\n    \"explanation\": \"Coordinates reconstructed from detected fragments\"\n  },\n  \"ocr_method\": \"ultra_crop2_ultra_coords\"\n}"
+						},
+						{
+							"name": "✅ Very High Confidence Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"type": "file",
+											"src": "gps-overlay-perfect.jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/ocr",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ocr"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"raw_text\": \"6°16'8.3\\\"S 107°15'19.4\\\"E\\nSpeed: 25.4km/h\\nAltitude: 46.3msnm\\nIndex number: 26\",\n  \"latitude\": -6.26891158,\n  \"longitude\": 107.25537723,\n  \"confidence\": {\n    \"score\": 0.90,\n    \"level\": \"very_high\",\n    \"method\": \"file_specific_correction\",\n    \"explanation\": \"Coordinates corrected using file-specific pattern recognition\"\n  },\n  \"ocr_method\": \"region_config_sparse\"\n}"
+						},
+						{
+							"name": "⚠️ Medium Confidence (Geographic Estimation)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"type": "file",
+											"src": "gps-overlay-poor.jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/ocr",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ocr"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"raw_text\": \"Kecamatan Boyolali\\nJawa Tengah\\nAltitude: 291.1msnm\\nSpeed: 0.0km/h\",\n  \"latitude\": -7.5,\n  \"longitude\": 110.6,\n  \"coordinates_estimated_from_location\": true,\n  \"location_context\": \"Estimated coordinates based on detected location names\",\n  \"confidence\": {\n    \"score\": 0.60,\n    \"level\": \"medium\",\n    \"method\": \"geographic_estimation\",\n    \"explanation\": \"Coordinates estimated from detected location names\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Extract Coordinates - Batch Test",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Batch testing script",
+									"pm.test(\"Status code is 200 or 422\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 422]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Successful extraction has required fields\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('confidence');",
+									"        pm.expect(jsonData).to.have.property('latitude');",
+									"        pm.expect(jsonData).to.have.property('longitude');",
+									"    });",
+									"    ",
+									"    // Store results for batch analysis",
+									"    const jsonData = pm.response.json();",
+									"    const confidence = jsonData.confidence;",
+									"    ",
+									"    postman.setGlobalVariable(\"last_confidence_score\", confidence.score);",
+									"    postman.setGlobalVariable(\"last_confidence_level\", confidence.level);",
+									"    ",
+									"    console.log(`✅ Success - Confidence: ${confidence.score} (${confidence.level})`);",
+									"} else {",
+									"    console.log(\"❌ Failed to extract coordinates\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Upload multiple images for batch testing"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/ocr",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ocr"
+							]
+						},
+						"description": "**Batch testing endpoint for multiple images**\n\n## 🔄 Batch Testing Workflow\n1. Use this request to test multiple images sequentially\n2. Check the test results tab for success/failure status\n3. Monitor confidence scores across different images\n4. Analyze patterns in success rates\n\n## 📊 What to Monitor\n- **Success Rate**: Percentage of successful extractions\n- **Confidence Distribution**: How many high/medium/low confidence results\n- **Processing Time**: Variation based on image quality\n- **Error Patterns**: Common failure modes\n\n## 🧪 Testing Strategy\n1. **Perfect Quality Images**: Should achieve 0.90+ confidence\n2. **Good Quality Images**: Should achieve 0.80+ confidence\n3. **Poor Quality Images**: May achieve 0.60+ confidence\n4. **Very Poor Images**: May fail or achieve <0.60 confidence\n\n## 💡 Tips\n- Run this request multiple times with different images\n- Use the Collection Runner for automated batch testing\n- Check the console logs for detailed confidence information\n- Compare results across different image qualities"
+					},
+					"response": []
+				}
+			],
+			"description": "**GPS Coordinate Extraction Endpoints**\n\nThis folder contains requests for extracting GPS coordinates from images with GPS overlays. The SnapGeo OCR service uses advanced multi-stage processing to achieve high accuracy rates.\n\n## 🎯 Processing Pipeline\n1. **Image Upload**: Accepts JPG, JPEG, PNG files\n2. **Multi-Stage OCR**: 40+ Tesseract configurations\n3. **Fragment Reconstruction**: Rebuilds coordinates from partial OCR\n4. **Pattern Matching**: Intelligent coordinate pattern detection\n5. **Confidence Scoring**: Quality assessment of extraction method\n\n## 📊 Success Rates\n- **Overall**: 88.9% success rate on challenging images\n- **High Confidence (≥0.8)**: 66.7% of successful extractions\n- **Processing Time**: 2-7 seconds per image\n\n## 🧪 Testing Tips\n- Use images with GPS overlays in bottom-right corner\n- Test with various image qualities (perfect to poor)\n- Check confidence scores before using coordinates\n- Monitor processing times for performance analysis",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// OCR Processing folder pre-request script",
+							"console.log(\"🔍 Starting OCR Processing...\");",
+							"console.log(\"Expected processing time: 2-7 seconds\");",
+							"console.log(\"Supported formats: JPG, JPEG, PNG\");"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "🏥 Health Check",
+			"item": [
+				{
+					"name": "Service Health Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Health check test script",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 2000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});",
+									"",
+									"pm.test(\"Service is healthy\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData.status).to.eql('healthy');",
+									"});",
+									"",
+									"// Log health status",
+									"const jsonData = pm.response.json();",
+									"console.log(`Service Status: ${jsonData.status}`);",
+									"console.log(`Response Time: ${pm.response.responseTime}ms`);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "**Check the health status of the SnapGeo OCR service**\n\n## 🎯 Purpose\n- Verify that the service is running and responsive\n- Monitor service availability for load balancers\n- Quick connectivity test before processing images\n- Performance monitoring (response time)\n\n## ✅ Expected Response\n```json\n{\n  \"status\": \"healthy\"\n}\n```\n\n## 🔍 What This Checks\n- **Service Availability**: FastAPI server is running\n- **Basic Functionality**: HTTP endpoints are responding\n- **Response Time**: Service performance indicator\n- **Load Balancer Ready**: Endpoint for health monitoring\n\n## 🚨 Troubleshooting\n- **Timeout**: Service may be starting up (wait 30-60 seconds)\n- **Connection Error**: Check if service is deployed and accessible\n- **Slow Response**: Service may be under heavy load\n\n## 💡 Usage Tips\n- Run this before any OCR processing requests\n- Use for monitoring service availability\n- Include in automated health check systems\n- Good for testing connectivity and authentication"
+					},
+					"response": [
+						{
+							"name": "✅ Healthy Service",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/health",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"health"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "20"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"healthy\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Service Uptime Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extended health check with performance monitoring",
+									"pm.test(\"Service is responding\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Fast response time (< 1000ms)\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"Service reports healthy status\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('healthy');",
+									"});",
+									"",
+									"// Store response time for monitoring",
+									"postman.setGlobalVariable(\"last_health_check_time\", pm.response.responseTime);",
+									"postman.setGlobalVariable(\"last_health_check_status\", \"healthy\");",
+									"",
+									"// Performance analysis",
+									"const responseTime = pm.response.responseTime;",
+									"if (responseTime < 200) {",
+									"    console.log(`🚀 Excellent response time: ${responseTime}ms`);",
+									"} else if (responseTime < 500) {",
+									"    console.log(`✅ Good response time: ${responseTime}ms`);",
+									"} else if (responseTime < 1000) {",
+									"    console.log(`⚠️ Slower response time: ${responseTime}ms`);",
+									"} else {",
+									"    console.log(`🐌 Slow response time: ${responseTime}ms - investigate`);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "**Extended health check with performance monitoring**\n\n## 📊 Performance Monitoring\nThis request includes additional monitoring for:\n- **Response Time Analysis**: Categorizes performance\n- **Uptime Tracking**: Continuous availability monitoring\n- **Performance Trends**: Stores metrics for analysis\n\n## 🎯 Response Time Expectations\n- **🚀 Excellent**: < 200ms\n- **✅ Good**: 200-500ms\n- **⚠️ Acceptable**: 500-1000ms\n- **🐌 Investigate**: > 1000ms\n\n## 🔄 Recommended Usage\n- **Monitoring Dashboards**: Automated checks every 1-5 minutes\n- **Pre-Processing**: Before OCR operations\n- **Load Testing**: Multiple concurrent requests\n- **Deployment Verification**: After updates\n\n## 📈 Metrics Collected\n- Response time tracking\n- Service availability percentage\n- Performance trend analysis\n- Alert thresholds for monitoring"
+					},
+					"response": []
+				}
+			],
+			"description": "**Service Health Monitoring**\n\nHealth check endpoints for monitoring the SnapGeo OCR service availability and performance.\n\n## 🎯 Purpose\n- **Service Monitoring**: Verify service availability\n- **Load Balancer Health**: Endpoint for traffic routing decisions\n- **Performance Tracking**: Monitor response times\n- **Deployment Verification**: Confirm successful deployments\n\n## 📊 What We Monitor\n- **Availability**: Service up/down status\n- **Response Time**: Performance indicators\n- **Service Health**: Internal status checks\n- **Connectivity**: Network and DNS resolution\n\n## 🔧 Usage in Production\n- **Load Balancers**: Route traffic only to healthy instances\n- **Monitoring Systems**: Alert on service failures\n- **CI/CD Pipelines**: Verify deployments\n- **Auto-Scaling**: Trigger scaling based on health",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Health check folder pre-request script",
+							"console.log(\"🏥 Performing health check...\");",
+							"console.log(\"Checking service availability and performance\");"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "🔥 Service Warm-up (Free Tier)",
+			"item": [
+				{
+					"name": "1. Wake Up Service",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Service wake-up test script",
+									"pm.test(\"Service woke up successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Service is healthy after wake-up\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('healthy');",
+									"});",
+									"",
+									"// Log wake-up performance",
+									"const responseTime = pm.response.responseTime;",
+									"console.log(`🔥 Service wake-up time: ${responseTime}ms`);",
+									"",
+									"if (responseTime > 10000) {",
+									"    console.log('⏰ Cold start detected - service was sleeping');",
+									"    console.log('✅ Service is now warm and ready for OCR processing');",
+									"} else {",
+									"    console.log('🚀 Service was already warm - ready to proceed');",
+									"}",
+									"",
+									"// Set global flag that service is warm",
+									"pm.globals.set('service_warm', 'true');",
+									"pm.globals.set('wake_up_time', responseTime);",
+									"",
+									"// Auto-trigger next request after 2 second delay for full warm-up",
+									"setTimeout(() => {",
+									"    console.log('🎯 Service ready for OCR processing!');",
+									"}, 2000);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Pre-request for wake-up",
+									"console.log('🔥 Waking up Render service...');",
+									"console.log('⏰ This may take 20-30 seconds on first request');",
+									"console.log('🚀 Subsequent requests will be fast!');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "**Wake up the Render service from sleep (Free Tier Optimization)**\n\n## 🎯 Purpose\nRender's free tier puts services to sleep after 15 minutes of inactivity. This request wakes up the service before batch processing to avoid long delays on OCR requests.\n\n## ⏰ Expected Behavior\n- **First Request (Cold Start)**: 20-30 seconds response time\n- **Service Warm-up**: 2-3 seconds for full initialization\n- **Subsequent Requests**: <1 second response time\n\n## 🔥 Warm-up Strategy\n1. **Health Check**: Ping the service to wake it up\n2. **Wait Period**: Allow 2-3 seconds for full initialization\n3. **Ready for Processing**: OCR requests will be fast\n\n## 📊 Performance Impact\n- **Without Warm-up**: Each OCR request has potential 20-30s delay\n- **With Warm-up**: Only first health check is slow, all OCR requests are fast\n- **Time Savings**: Significant for batch processing multiple images\n\n## 💡 Usage Tips\n- **Always run this first** before OCR processing\n- **Wait for completion** before starting OCR requests\n- **Monitor console logs** for wake-up status\n- **Use in Collection Runner** as first step in workflows\n\n## 🔄 Recommended Workflow\n1. Run this wake-up request\n2. Wait for ✅ confirmation in console\n3. Proceed with OCR processing requests\n4. Enjoy fast response times!\n\n## 🚨 Free Tier Notes\n- Service sleeps after 15 minutes of inactivity\n- Wake-up is required only after sleep period\n- No cost optimization needed for paid tiers"
+					},
+					"response": [
+						{
+							"name": "✅ Service Warmed Up",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/health",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"health"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"healthy\"\n}"
+						}
+					]
+				},
+				{
+					"name": "2. Verify Service Ready",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Verify service is fully ready",
+									"pm.test(\"Service responds quickly (warmed up)\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Service is healthy and ready\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('healthy');",
+									"});",
+									"",
+									"// Confirm readiness",
+									"const responseTime = pm.response.responseTime;",
+									"const isWarm = pm.globals.get('service_warm');",
+									"",
+									"if (responseTime < 1000 && isWarm === 'true') {",
+									"    console.log('🚀 Service is fully warmed up and ready!');",
+									"    console.log('✅ You can now proceed with OCR processing');",
+									"    pm.globals.set('ready_for_ocr', 'true');",
+									"} else {",
+									"    console.log('⏰ Service may need a bit more time to warm up');",
+									"    console.log('🔄 Consider waiting 5-10 more seconds before OCR requests');",
+									"}",
+									"",
+									"console.log(`📊 Verification response time: ${responseTime}ms`);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "**Verify the service is fully warmed up and ready for OCR processing**\n\n## 🎯 Purpose\nDouble-check that the service is fully initialized and ready for fast OCR processing after wake-up.\n\n## ✅ Readiness Indicators\n- **Response Time**: <1-3 seconds (service is warm)\n- **Status**: \"healthy\" response\n- **Global Flag**: service_warm = true\n\n## 📊 Performance Verification\n- **Fast Response (<1s)**: Service fully ready\n- **Medium Response (1-3s)**: Service warming up, almost ready\n- **Slow Response (>5s)**: May need additional time\n\n## 🔄 Next Steps\nAfter this verification passes:\n1. ✅ Service is ready for OCR processing\n2. 🚀 All OCR requests will be fast\n3. 📊 No more cold start delays\n\n## 💡 Optional Step\nThis verification is optional but recommended for:\n- **Batch Processing**: Ensure optimal performance\n- **Time-Critical Applications**: Confirm readiness\n- **Performance Testing**: Baseline measurement"
+					},
+					"response": []
+				},
+				{
+					"name": "🔄 Complete Warm-up Workflow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Complete workflow test",
+									"pm.test(\"Warm-up workflow completed\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Log workflow completion",
+									"const wakeUpTime = pm.globals.get('wake_up_time') || 'unknown';",
+									"const currentTime = pm.response.responseTime;",
+									"",
+									"console.log('🎉 Warm-up Workflow Complete!');",
+									"console.log(`⏰ Initial wake-up time: ${wakeUpTime}ms`);",
+									"console.log(`🚀 Current response time: ${currentTime}ms`);",
+									"console.log('✅ Service is ready for production OCR processing');",
+									"console.log('');",
+									"console.log('📋 Next Steps:');",
+									"console.log('1. Use \"Extract GPS Coordinates\" for single image processing');",
+									"console.log('2. Use Collection Runner for batch processing');",
+									"console.log('3. All requests will now be fast (<3 seconds)');",
+									"",
+									"// Mark workflow as complete",
+									"pm.globals.set('warmup_complete', 'true');",
+									"pm.globals.set('warmup_completed_at', new Date().toISOString());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "**Complete warm-up workflow - Service is ready for production use**\n\n## 🎉 Workflow Summary\nThis completes the 3-step warm-up process:\n1. ✅ **Wake Up Service**: Initial cold start (20-30s)\n2. ✅ **Verify Ready**: Confirm fast response (<3s)\n3. ✅ **Production Ready**: All subsequent requests will be fast\n\n## 🚀 Performance Benefits\n- **Eliminated Cold Starts**: No more 20-30 second delays\n- **Consistent Performance**: All OCR requests now <5 seconds\n- **Batch Processing Ready**: Optimal for multiple images\n- **Production Performance**: On free tier!\n\n## 📊 Expected Results After Warm-up\n- **Health Check**: <1 second response\n- **OCR Processing**: 2-7 seconds (based on image quality)\n- **Batch Processing**: Consistent timing across requests\n- **No Interruptions**: Service stays warm during active use\n\n## 🔄 When to Re-run Warm-up\n- **After 15+ minutes of inactivity**: Service may sleep again\n- **First request of the day**: Cold start likely\n- **Slow OCR responses**: Indicates service may have slept\n- **Before important demos**: Ensure optimal performance\n\n## 💡 Automation Tips\n- **Collection Runner**: Include this as first step\n- **Scheduled Requests**: Keep service warm with periodic pings\n- **Monitoring**: Set up alerts for response time increases\n- **Team Workflow**: Document this process for team members"
+					},
+					"response": []
+				}
+			],
+			"description": "**Service Warm-up Workflow for Render Free Tier**\n\nOptimized workflow to eliminate cold start delays on Render's free tier. This folder contains a strategic 3-step process to ensure optimal performance without upgrading to paid plans.\n\n## 🎯 Problem: Render Free Tier Cold Starts\n- **Service Sleep**: After 15 minutes of inactivity\n- **Wake-up Time**: 20-30 seconds for first request\n- **Impact**: Poor user experience, especially for batch processing\n\n## 🔥 Solution: Smart Warm-up Strategy\n\n### Step 1: Wake Up Service (20-30s)\n- Ping health endpoint to trigger wake-up\n- Monitor wake-up time and status\n- Set global flags for workflow tracking\n\n### Step 2: Verify Service Ready (<3s)\n- Confirm service is fully initialized\n- Validate fast response times\n- Ensure readiness for OCR processing\n\n### Step 3: Production Ready\n- Service now responds in <1 second\n- OCR processing optimized (2-7s per image)\n- Batch processing without delays\n\n## 📊 Performance Impact\n\n### Without Warm-up:\n- **Each OCR Request**: Potential 20-30s delay\n- **Batch of 10 Images**: Up to 5 minutes of cold start delays\n- **User Experience**: Poor, unpredictable timing\n\n### With Warm-up:\n- **Initial Health Check**: 20-30s (one time)\n- **All OCR Requests**: 2-7s (consistent)\n- **Batch of 10 Images**: Predictable, fast processing\n- **User Experience**: Production-quality performance\n\n## 🔄 Recommended Usage\n\n### Manual Testing:\n1. Run \"1. Wake Up Service\" first\n2. Wait for ✅ confirmation\n3. Proceed with OCR processing\n\n### Batch Processing:\n1. Use Collection Runner\n2. Include warm-up as first requests\n3. Run OCR requests after warm-up\n\n### Team Workflow:\n1. Document this process for team\n2. Always warm up before demos\n3. Monitor for sleep periods (15+ min inactivity)\n\n## 💡 Pro Tips\n- **Keep Service Warm**: Ping every 10-14 minutes during active work\n- **Monitor Response Times**: >10s indicates service may be sleeping\n- **Batch Optimization**: Warm up once, process multiple images\n- **No Cost**: This strategy works perfectly on free tier\n\n## 🚨 When Service Sleeps Again\n- **After 15+ minutes** of no requests\n- **First request of the day**\n- **Long breaks** between processing sessions\n- **Solution**: Re-run this warm-up workflow\n\nThis warm-up strategy gives you **production-level performance on Render's free tier!** 🚀",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Warm-up folder pre-request script",
+							"console.log('🔥 Starting Render Free Tier Optimization...');",
+							"console.log('⏰ Preparing to wake up sleeping service');",
+							"console.log('🎯 Goal: Eliminate cold start delays for OCR processing');"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "📋 API Documentation",
+			"item": [
+				{
+					"name": "OpenAPI Schema",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/openapi.json",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"openapi.json"
+							]
+						},
+						"description": "**Get the OpenAPI specification for the SnapGeo OCR API**\n\n## 📋 OpenAPI Schema\nThis endpoint returns the complete OpenAPI 3.0 specification for the SnapGeo OCR API, including:\n\n- **Endpoint Definitions**: All available endpoints with parameters\n- **Request/Response Schemas**: Data structures and validation rules\n- **Authentication**: Security requirements (when implemented)\n- **Examples**: Sample requests and responses\n\n## 🛠 Usage\n- **Code Generation**: Generate API clients in any language\n- **Documentation**: Import into API documentation tools\n- **Testing**: Import into testing frameworks\n- **Integration**: Use with API gateways and proxies\n\n## 🔧 Tools Integration\n- **Postman**: Import as collection\n- **Insomnia**: Import as workspace\n- **Swagger Codegen**: Generate client libraries\n- **API Gateway**: Configure routing and validation\n\n## 📖 Alternative Documentation\n- **Swagger UI**: {{base_url}}/docs\n- **ReDoc**: {{base_url}}/redoc\n- **GitHub**: Repository documentation"
+					},
+					"response": []
+				},
+				{
+					"name": "Swagger UI (Redirect)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/docs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"docs"
+							]
+						},
+						"description": "**Access the interactive Swagger UI documentation**\n\n## 🧪 Interactive API Documentation\nThis opens the Swagger UI interface where you can:\n\n- **Browse Endpoints**: View all available API endpoints\n- **Test Requests**: Make actual API calls directly from the browser\n- **Upload Files**: Test the OCR endpoint with image uploads\n- **View Schemas**: Inspect request/response data structures\n- **See Examples**: View sample requests and responses\n\n## 🎯 Features\n- **Try It Out**: Interactive request testing\n- **File Upload**: Direct image upload for OCR testing\n- **Response Examples**: Real-time response preview\n- **Authentication**: API key testing (when implemented)\n\n## 💡 Usage Tips\n- Use this for manual API testing\n- Great for demonstrating API capabilities\n- Perfect for frontend developers to understand the API\n- Useful for debugging and troubleshooting\n\n## 🔗 Direct Access\nOpen {{base_url}}/docs in your browser for the full interactive experience."
+					},
+					"response": []
+				},
+				{
+					"name": "ReDoc Documentation (Redirect)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/redoc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redoc"
+							]
+						},
+						"description": "**Access the clean ReDoc API documentation**\n\n## 📖 Clean API Documentation\nReDoc provides a clean, readable format for API documentation:\n\n- **Clean Layout**: Easy-to-read documentation format\n- **Detailed Schemas**: Comprehensive data structure documentation\n- **Code Examples**: Sample code in multiple languages\n- **Printable**: Clean format suitable for printing\n- **Mobile Friendly**: Responsive design for all devices\n\n## 🎯 Best For\n- **API Reference**: Comprehensive endpoint documentation\n- **Integration Planning**: Understanding API capabilities\n- **Team Sharing**: Clean format for stakeholder reviews\n- **Documentation Export**: Print-friendly API reference\n\n## 🔗 Direct Access\nOpen {{base_url}}/redoc in your browser for the clean documentation view."
+					},
+					"response": []
+				}
+			],
+			"description": "**API Documentation Access**\n\nThis folder provides access to various forms of API documentation for the SnapGeo OCR service.\n\n## 📚 Documentation Types\n\n### 🧪 Interactive (Swagger UI)\n- **URL**: `/docs`\n- **Purpose**: Testing and exploration\n- **Features**: File uploads, live testing, examples\n\n### 📖 Reference (ReDoc)\n- **URL**: `/redoc`\n- **Purpose**: Clean documentation reading\n- **Features**: Detailed schemas, code examples\n\n### ⚙️ Machine-Readable (OpenAPI)\n- **URL**: `/openapi.json`\n- **Purpose**: Integration and code generation\n- **Features**: Complete API specification\n\n## 🛠 Usage Scenarios\n- **Development**: Use Swagger UI for testing\n- **Integration**: Use OpenAPI schema for client generation\n- **Documentation**: Use ReDoc for reference\n- **Troubleshooting**: Use interactive docs for debugging"
+		},
+		{
+			"name": "🧪 Example Responses",
+			"item": [
+				{
+					"name": "Perfect Quality Image Result",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/examples/perfect-quality",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"examples",
+								"perfect-quality"
+							]
+						},
+						"description": "**Example response for perfect quality GPS overlay image**\n\n## 📊 Perfect Quality Characteristics\n- **Image Quality**: Crystal clear GPS overlay text\n- **Processing Method**: Direct OCR without enhancement\n- **Confidence Score**: 0.95 (very_high)\n- **Processing Time**: ~2 seconds\n\n## ✅ Expected Results\n```json\n{\n  \"latitude\": -6.26891158,\n  \"longitude\": 107.25537723,\n  \"confidence\": {\n    \"score\": 0.95,\n    \"level\": \"very_high\",\n    \"method\": \"direct_ocr\",\n    \"explanation\": \"Coordinates found directly in OCR text without reconstruction\"\n  },\n  \"raw_text\": \"6°16'8.3\\\"S 107°15'19.4\\\"E\",\n  \"ocr_method\": \"region_config_1\"\n}\n```\n\n## 🎯 Use Cases\n- **Production Systems**: Safe for automated processing\n- **Navigation Apps**: High precision for routing\n- **Mapping Services**: Reliable coordinate data\n- **Analytics**: Trusted location data\n\n**Note**: This is a mock endpoint for documentation. Use the actual `/ocr` endpoint for processing."
+					},
+					"response": [
+						{
+							"name": "Perfect Quality Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/examples/perfect-quality",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"examples",
+										"perfect-quality"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"raw_text\": \"6°16'8.3\\\"S 107°15'19.4\\\"E\\nSpeed: 25.4km/h\\nAltitude: 46.3msnm\\nIndex number: 26\",\n  \"latitude\": -6.26891158,\n  \"longitude\": 107.25537723,\n  \"confidence\": {\n    \"score\": 0.95,\n    \"level\": \"very_high\",\n    \"method\": \"direct_ocr\",\n    \"explanation\": \"Coordinates found directly in OCR text without reconstruction\"\n  },\n  \"ocr_method\": \"region_config_1\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Medium Quality Image Result",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/examples/medium-quality",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"examples",
+								"medium-quality"
+							]
+						},
+						"description": "**Example response for medium quality GPS overlay image**\n\n## 📊 Medium Quality Characteristics\n- **Image Quality**: Partially readable GPS overlay\n- **Processing Method**: Fragment reconstruction\n- **Confidence Score**: 0.75 (medium_high)\n- **Processing Time**: ~4-5 seconds\n\n## ✅ Expected Results\n```json\n{\n  \"latitude\": -7.55492507,\n  \"longitude\": 110.64424782,\n  \"confidence\": {\n    \"score\": 0.75,\n    \"level\": \"medium_high\",\n    \"method\": \"enhanced_ocr\",\n    \"explanation\": \"Coordinates extracted using enhanced OCR processing\"\n  },\n  \"latitude_reconstructed\": true,\n  \"longitude_reconstructed\": false\n}\n```\n\n## ⚠️ Usage Considerations\n- **Validation Recommended**: Consider additional verification\n- **Business Logic**: Apply confidence thresholds\n- **User Confirmation**: May require user review\n- **Fallback Options**: Have alternative data sources\n\n**Note**: This is a mock endpoint for documentation. Use the actual `/ocr` endpoint for processing."
+					},
+					"response": [
+						{
+							"name": "Medium Quality Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/examples/medium-quality",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"examples",
+										"medium-quality"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"raw_text\": \"7°33'15.8\\\"S 110°38'38.7\\\"E\\nSpeed: 0.0km/h\\nAltitude: 125.3msnm\",\n  \"latitude\": -7.55492507,\n  \"longitude\": 110.64424782,\n  \"latitude_reconstructed\": true,\n  \"longitude_reconstructed\": false,\n  \"confidence\": {\n    \"score\": 0.75,\n    \"level\": \"medium_high\",\n    \"method\": \"enhanced_ocr\",\n    \"explanation\": \"Coordinates extracted using enhanced OCR processing\"\n  },\n  \"ocr_method\": \"ultra_crop2_ultra_coords\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Failed Extraction Result",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/examples/failed-extraction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"examples",
+								"failed-extraction"
+							]
+						},
+						"description": "**Example response when GPS coordinates cannot be extracted**\n\n## ❌ Failure Scenarios\n- **No GPS Overlay**: Image doesn't contain GPS information\n- **Poor Image Quality**: Text too blurred or corrupted\n- **Unsupported Format**: Non-standard GPS overlay format\n- **Processing Error**: Technical issues during OCR\n\n## 📄 Error Response Format\n```json\n{\n  \"error\": \"GPS coordinates not found, but extracted other location metadata\",\n  \"location_info\": [\"Jakarta\", \"Jawa Barat\", \"Indonesia\"],\n  \"raw_text\": \"Street view image without GPS overlay\\nLocation: Jakarta\"\n}\n```\n\n## 🔧 Error Handling\n- **HTTP Status**: 422 (Unprocessable Entity)\n- **Graceful Degradation**: Provide location info when available\n- **User Feedback**: Clear error messages\n- **Retry Logic**: May succeed with different processing\n\n## 💡 Troubleshooting\n- **Check Image Quality**: Ensure GPS overlay is visible\n- **Verify Format**: Use JPG, JPEG, or PNG\n- **Try Different Images**: Some formats work better\n- **Contact Support**: For persistent issues\n\n**Note**: This is a mock endpoint for documentation. Use the actual `/ocr` endpoint for processing."
+					},
+					"response": [
+						{
+							"name": "Failed Extraction Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/examples/failed-extraction",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"examples",
+										"failed-extraction"
+									]
+								}
+							},
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": \"GPS coordinates not found, but extracted other location metadata\",\n  \"location_info\": [\"Jakarta\", \"Jawa Barat\", \"Indonesia\"],\n  \"raw_text\": \"Street view image without GPS overlay\\nLocation: Jakarta\\nSpeed: 25 km/h\"\n}"
+						}
+					]
+				}
+			],
+			"description": "**Example API Responses**\n\nThis folder contains example responses for different scenarios to help developers understand the expected API behavior.\n\n## 📊 Response Categories\n\n### ✅ Success Responses\n- **Perfect Quality**: Very high confidence (0.90+)\n- **Good Quality**: High confidence (0.80-0.89)\n- **Medium Quality**: Medium confidence (0.60-0.79)\n\n### ⚠️ Partial Success\n- **Low Quality**: Low confidence (<0.60)\n- **Geographic Estimation**: Location-based coordinates\n\n### ❌ Error Responses\n- **No Coordinates**: GPS overlay not found\n- **Invalid Format**: Unsupported file type\n- **Processing Error**: Technical failures\n\n## 🎯 Usage\n- **Development**: Understand response structures\n- **Testing**: Expected behavior for different scenarios\n- **Integration**: Error handling patterns\n- **Documentation**: Share examples with team\n\n**Note**: These are example/mock endpoints for documentation purposes. Use the actual `/ocr` endpoint for processing real images."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script for SnapGeo OCR API",
+					"console.log(\"🚀 SnapGeo OCR API Request Starting...\");",
+					"console.log(\"Base URL: \" + pm.environment.get(\"base_url\"));",
+					"",
+					"// Set default base URL if not configured",
+					"if (!pm.environment.get(\"base_url\")) {",
+					"    pm.environment.set(\"base_url\", \"https://snapgeo-ocr.onrender.com\");",
+					"    console.log(\"🔧 Set default base URL: https://snapgeo-ocr.onrender.com\");",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script for SnapGeo OCR API",
+					"",
+					"// Log response details",
+					"console.log(`📊 Response Status: ${pm.response.status} (${pm.response.code})`);",
+					"console.log(`⏱️ Response Time: ${pm.response.responseTime}ms`);",
+					"",
+					"// Common response validation",
+					"pm.test(\"Response has valid JSON\", function () {",
+					"    pm.response.to.be.json;",
+					"});",
+					"",
+					"pm.test(\"Response has content-type header\", function () {",
+					"    pm.response.to.have.header(\"content-type\");",
+					"});",
+					"",
+					"// Track API usage statistics",
+					"const currentRequests = pm.globals.get(\"total_requests\") || 0;",
+					"pm.globals.set(\"total_requests\", currentRequests + 1);",
+					"",
+					"// Track success/failure rates",
+					"if (pm.response.code >= 200 && pm.response.code < 300) {",
+					"    const successCount = pm.globals.get(\"success_count\") || 0;",
+					"    pm.globals.set(\"success_count\", successCount + 1);",
+					"} else {",
+					"    const errorCount = pm.globals.get(\"error_count\") || 0;",
+					"    pm.globals.set(\"error_count\", errorCount + 1);",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://snapgeo-ocr.onrender.com",
+			"type": "string"
+		},
+		{
+			"key": "api_version",
+			"value": "1.0.0",
+			"type": "string"
+		},
+		{
+			"key": "service_name",
+			"value": "SnapGeo OCR",
+			"type": "string"
+		}
+	]
+}

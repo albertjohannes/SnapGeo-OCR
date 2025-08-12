@@ -211,13 +211,58 @@ async def ocr_handler(file: UploadFile = File(..., max_length=10*1024*1024)):  #
 
 ## Testing Production Deployment
 
+### 🔥 Render Free Tier Optimization - CRITICAL
+
+**Before any OCR processing, ALWAYS warm up the service first:**
+
+```bash
+# 1. Wake up service (20-30s on cold start, <1s if warm)
+curl https://your-app.onrender.com/health
+
+# 2. Wait 2-3 seconds for full initialization
+
+# 3. Now OCR requests will be fast (2-7s instead of 20-30s)
+curl -X POST https://your-app.onrender.com/ocr -F "file=@image.jpg"
+```
+
+**📊 Performance Impact:**
+- **Without warm-up**: Each OCR request has 20-30s delay
+- **With warm-up**: Only first health check is slow, OCR is fast
+- **Batch processing**: Essential for multiple images
+
 ### Postman Collection for Production
 Create collection with base URL: `https://your-app-name.onrender.com`
 
-#### Test Endpoints:
-1. **Health Check:** `GET /health`
-2. **OCR Processing:** `POST /ocr`
+#### Recommended Testing Order:
+1. **Service Warm-up:** `GET /health` (wait for response)
+2. **OCR Processing:** `POST /ocr` (now fast!)
 3. **API Docs:** `GET /docs`
+
+#### Python Production Client Example:
+```python
+import requests
+import time
+
+def warmup_service(base_url):
+    """Essential for Render free tier"""
+    print("🔥 Warming up service...")
+    start_time = time.time()
+    
+    health_response = requests.get(f"{base_url}/health")
+    warmup_time = time.time() - start_time
+    
+    if warmup_time > 10:
+        print(f"⏰ Cold start: {warmup_time:.1f}s - waiting...")
+        time.sleep(3)
+    
+    print("✅ Service ready!")
+    return health_response.json()
+
+# Usage
+BASE_URL = "https://your-app.onrender.com"
+warmup_service(BASE_URL)  # Call first!
+# Now process images normally
+```
 
 ### Load Testing
 ```bash
@@ -263,9 +308,10 @@ logger.info(f"Processing OCR request for file: {file.filename}")
 - Monitor memory usage
 
 #### Slow Response Times
-- Implement image preprocessing
-- Consider async processing for large files
-- Monitor OCR processing time
+- **RENDER FREE TIER**: Use warm-up strategy (see above) - most common issue
+- Implement image preprocessing for large images
+- Consider async processing for large files  
+- Monitor OCR processing time vs cold start time
 
 ### Debug Commands
 ```bash

@@ -138,7 +138,27 @@ Check service health status for monitoring and load balancers.
 
 ## 🧪 Testing the API
 
-### Using cURL
+### 🔥 Render Free Tier Optimization
+
+For production deployment on Render's free tier, **always warm up the service first**:
+
+```bash
+# 1. Wake up service (20-30s first time, <1s if already warm)
+curl https://snapgeo-ocr.onrender.com/health
+
+# 2. Wait 2-3 seconds for full initialization
+
+# 3. Now all OCR requests will be fast (2-7s)
+curl -X POST "https://snapgeo-ocr.onrender.com/ocr" \
+     -F "file=@your-gps-image.jpg"
+```
+
+**📊 Performance Impact:**
+- **Without warm-up**: Each OCR request may have 20-30s delay
+- **With warm-up**: Only first health check is slow, all OCR requests fast
+- **Best for**: Batch processing, demos, production use
+
+### Using cURL (Local Development)
 ```bash
 # Extract coordinates from image
 curl -X POST "http://localhost:8000/ocr" \
@@ -150,7 +170,56 @@ curl -X POST "http://localhost:8000/ocr" \
 curl -X GET "http://localhost:8000/health"
 ```
 
-### Using Python
+### Using Python (Production with Warm-up)
+```python
+import requests
+import time
+
+# Production URL
+BASE_URL = "https://snapgeo-ocr.onrender.com"
+
+def warmup_service():
+    """Warm up Render free tier service to avoid cold starts"""
+    print("🔥 Warming up service...")
+    start_time = time.time()
+    
+    health_response = requests.get(f"{BASE_URL}/health")
+    warmup_time = time.time() - start_time
+    
+    if warmup_time > 10:
+        print(f"⏰ Cold start detected: {warmup_time:.1f}s")
+        print("⏱️ Waiting 3 seconds for full initialization...")
+        time.sleep(3)
+    else:
+        print(f"🚀 Service already warm: {warmup_time:.1f}s")
+    
+    print("✅ Service ready for OCR processing!")
+    return health_response.json()
+
+def extract_coordinates(image_path):
+    """Extract coordinates with optimized performance"""
+    with open(image_path, 'rb') as f:
+        files = {'file': (image_path, f, 'image/jpeg')}
+        response = requests.post(f'{BASE_URL}/ocr', files=files)
+        return response.json()
+
+# Usage example
+if __name__ == "__main__":
+    # 1. Warm up service first
+    warmup_service()
+    
+    # 2. Process images (all will be fast now)
+    result = extract_coordinates('gps-image.jpg')
+    
+    if 'latitude' in result:
+        confidence = result['confidence']
+        print(f"Coordinates: {result['latitude']}, {result['longitude']}")
+        print(f"Confidence: {confidence['score']} ({confidence['level']})")
+    else:
+        print(f"Error: {result.get('error', 'Unknown error')}")
+```
+
+### Using Python (Local Development)
 ```python
 import requests
 
@@ -217,8 +286,78 @@ openapi-generator generate -i http://localhost:8000/openapi.json -g typescript-a
 openapi-generator generate -i http://localhost:8000/openapi.json -g java -o snapgeo-java-client
 ```
 
-### Batch Processing
-For multiple images, make sequential requests:
+### Batch Processing (Production with Warm-up)
+For multiple images on Render free tier, **warm up first** then process:
+
+```python
+import requests
+import time
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+BASE_URL = "https://snapgeo-ocr.onrender.com"
+
+def warmup_service():
+    """Essential for Render free tier batch processing"""
+    print("🔥 Warming up service for batch processing...")
+    start_time = time.time()
+    
+    health_response = requests.get(f"{BASE_URL}/health")
+    warmup_time = time.time() - start_time
+    
+    if warmup_time > 10:
+        print(f"⏰ Cold start: {warmup_time:.1f}s - waiting for full initialization...")
+        time.sleep(3)
+    
+    print("✅ Service warm! Ready for fast batch processing.")
+    return warmup_time
+
+def process_image(image_path):
+    """Process single image (will be fast after warm-up)"""
+    with open(image_path, 'rb') as f:
+        files = {'file': (image_path.name, f, 'image/jpeg')}
+        response = requests.post(f'{BASE_URL}/ocr', files=files)
+        return image_path.name, response.json()
+
+def batch_process_images(image_directory):
+    """Optimized batch processing for Render free tier"""
+    # 1. Warm up service first (critical!)
+    warmup_time = warmup_service()
+    
+    # 2. Get all images
+    image_paths = list(Path(image_directory).glob('*.jpg'))
+    print(f"📊 Processing {len(image_paths)} images...")
+    
+    # 3. Process images (max 3 concurrent for Render free tier)
+    start_time = time.time()
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        results = list(executor.map(process_image, image_paths))
+    
+    # 4. Report results
+    total_time = time.time() - start_time
+    successful = sum(1 for _, result in results if 'confidence' in result)
+    
+    print(f"\n🎉 Batch Processing Complete!")
+    print(f"⏰ Warm-up time: {warmup_time:.1f}s")
+    print(f"📊 Processing time: {total_time:.1f}s")
+    print(f"✅ Success rate: {successful}/{len(image_paths)} ({successful/len(image_paths)*100:.1f}%)")
+    
+    for filename, result in results:
+        if 'confidence' in result:
+            conf = result['confidence']
+            print(f"  {filename}: {conf['score']:.2f} confidence ({conf['level']})")
+        else:
+            print(f"  {filename}: Failed - {result.get('error', 'Unknown error')}")
+    
+    return results
+
+# Usage
+if __name__ == "__main__":
+    results = batch_process_images('images/')
+```
+
+### Batch Processing (Local Development)
+For local development without warm-up concerns:
 
 ```python
 import requests

@@ -46,6 +46,8 @@ docker run -p 8000:8000 -v $(pwd):/app snapgeo-ocr
 ```
 
 ### Testing the API
+
+#### Local Development
 ```bash
 # Test via curl
 curl -X POST http://localhost:8000/ocr -F "file=@your-image.jpg"
@@ -56,6 +58,20 @@ curl http://localhost:8000/health
 # Service runs on http://localhost:8000
 # API documentation available at http://localhost:8000/docs
 ```
+
+#### Production Testing (Render Free Tier Optimization)
+```bash
+# 🔥 CRITICAL: Always warm up Render free tier first
+curl https://snapgeo-ocr.onrender.com/health  # 20-30s first time, <1s if warm
+
+# Wait 2-3 seconds for full initialization, then OCR is fast
+curl -X POST https://snapgeo-ocr.onrender.com/ocr -F "file=@your-image.jpg"  # 2-7s
+```
+
+**📊 Performance Impact:**
+- **Without warm-up**: Each OCR request may have 20-30s cold start delay
+- **With warm-up**: Only first health check is slow, all OCR requests fast
+- **Batch processing**: Essential for processing multiple images efficiently
 
 ## Architecture Overview - v5.0 with Confidence Scoring
 
@@ -222,18 +238,44 @@ snapgeo-ocr/
     └── planning/prompt_plan.md     # Implementation roadmap
 ```
 
-## Deployment Ready
+## Production Deployment
 
-The system is production-ready for deployment on:
-- **Render**: Automatic Docker deployment from GitHub
+### Render Free Tier (Recommended)
+**🔥 Critical Optimization**: Always warm up service before processing
+
+```python
+import requests
+import time
+
+def warmup_service():
+    """Essential for Render free tier performance"""
+    print("🔥 Warming up service...")
+    start_time = time.time()
+    
+    health_response = requests.get("https://snapgeo-ocr.onrender.com/health")
+    warmup_time = time.time() - start_time
+    
+    if warmup_time > 10:
+        print(f"⏰ Cold start detected: {warmup_time:.1f}s")
+        time.sleep(3)  # Wait for full initialization
+    
+    print("✅ Service ready for fast OCR processing!")
+    return health_response.json()
+
+# Usage: Always call warmup_service() before batch processing
+```
+
+### Other Platforms
 - **Heroku**: Container deployment with health checks
-- **AWS/GCP**: Container orchestration platforms
+- **AWS/GCP**: Container orchestration platforms  
+- **Railway**: Auto-deploy from GitHub
 - **Local Docker**: Development and testing
 
-Key deployment features:
-- ✅ CORS enabled for web frontends
-- ✅ Health check endpoint for load balancers  
-- ✅ Docker containerization with Tesseract
-- ✅ No hardcoded file dependencies
-- ✅ Confidence scoring for quality assessment
-- ✅ Error handling and logging
+### Key Production Features
+- ✅ **Free Tier Optimized**: Warm-up strategy for zero-cost hosting
+- ✅ **CORS Enabled**: Ready for web frontends
+- ✅ **Health Monitoring**: Load balancer endpoint (`/health`)
+- ✅ **Docker Ready**: One-command deployment
+- ✅ **No Dependencies**: Content-based processing (no hardcoded files)
+- ✅ **Confidence Scoring**: Quality assessment for production use
+- ✅ **Error Handling**: Graceful failure with detailed responses
